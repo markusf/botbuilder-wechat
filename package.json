@@ -1,0 +1,24 @@
+{
+  "name": "botbuilder-wechat",
+  "version": "0.2.0",
+  "description": "",
+  "main": "wechatBot.js",
+  "scripts": {
+    "start": "node sample.js"
+  },
+  "author": "markusf",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/markusf/botbuilder-wechat.git"
+  },
+  "dependencies": {
+    "botbuilder": "^0.8.0",
+    "wechat": "^2.0.3",
+    "wechat-api": "^1.27.1"
+  },
+  "devDependencies": {
+    "body-parser": "^1.13.3",
+    "express": "^4.13.1"
+  }
+}
