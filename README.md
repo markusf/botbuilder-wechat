@@ -8,10 +8,12 @@ This bot requires a Wechat Service Account with Server Callback Messages enabled
 
 ## Get started
 
-Step 1: Initialize Wechat Bot
+Step 1: Install using npm  `npm install botbuilder-wechat`
+
+Step 2: Initialize Wechat Bot
 
 ```javascript
-var wechatBotBuilder = require('./wechatBot');
+var wechatBotBuilder = require('botbuilder-wechat');
 
 var bot = new wechatBotBuilder.WechatBot({
   wechatAppId: 'wxa28b834343434',
@@ -20,7 +22,7 @@ var bot = new wechatBotBuilder.WechatBot({
 });
 ```
 
-Step 2: Integrate into your express like middleware
+Step 3: Integrate into your express like middleware
 
 ```javascript
 app.use('/wc', bot.getWechatCallbackHandler());
