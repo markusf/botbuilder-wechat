@@ -13,7 +13,6 @@
     "!node_modules/**"
   ],
   "files": [
-    "customTextBot.ts",
     "wechatBot.ts"
   ],
   "atom": {
