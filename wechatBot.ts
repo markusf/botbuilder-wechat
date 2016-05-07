@@ -14,6 +14,7 @@ export interface IWechatBotOptions {
     wechatSecret: string;
     wechatAesKey?: string;
     wechatToken: string;
+    voiceMessageParser?: (payload: any, done: any) => void
 }
 
 export class WechatBot extends botframework.DialogCollection {
@@ -80,6 +81,18 @@ export class WechatBot extends botframework.DialogCollection {
     private handleWechatMessage(req, res, next): void {
       var wechatMsg = req.weixin;
 
+      var msgType = wechatMsg.MsgType;
+
+      if (msgType === 'text') {
+        this.handleTextMessage(wechatMsg);
+      } else if (msgType === 'voice') {
+        this.handleVoiceMessage(wechatMsg);
+      }
+
+      res.status(200).end();
+    }
+
+    private handleTextMessage(wechatMsg):void {
       /*
       { ToUserName: 'gh_9ea57aea7260',
         FromUserName: 'o2uw0uMOTq7bWQqB_-E7XsQ89EoQ',
@@ -88,12 +101,6 @@ export class WechatBot extends botframework.DialogCollection {
         Content: 't3sz',
         MsgId: '6232853194577323038' }
       */
-
-      if (wechatMsg.MsgType !== 'text') {
-        res.status(200).end();
-        return;
-      }
-
       var msg = {
         id: wechatMsg.MsgId,
         from: {
@@ -106,8 +113,39 @@ export class WechatBot extends botframework.DialogCollection {
       this.dispatchMessage(wechatMsg.FromUserName,
         msg, null, this.options.defaultDialogId,
         this.options.defaultDialogArgs);
+    }
 
-      res.status(200).end();
+    private handleVoiceMessage(wechatMsg):void {
+      /*
+      { ToUserName: 'gh_9ea57aea7260',
+        FromUserName: 'o2uw0uMOTq7bWQqB_-E7XsQ89EoQ',
+        CreateTime: '1462593320',
+        MsgType: 'voice',
+        MediaId: 'mMES0qZ_PrDOB0_Nk85NFg1PHKvbRDBZ8rs5GDTbc2tFpLKRJSJYNAR8-fVYKSCt',
+        Format: 'amr',
+        MsgId: '6281790477156573800',
+        Recognition: '' }
+      */
+      console.log('handle voice message');
+      console.log(wechatMsg);
+      var voiceMessageParser = this.options.voiceMessageParser;
+
+      if (!voiceMessageParser) {
+        console.log('no parser found');
+        return;
+      }
+
+      // fetch audio (amr) from wechat
+      // pass to handler
+      this.wechatApi.getMedia(wechatMsg.MediaId, function(err, data) {
+        if (err) {
+          console.log('error fetching media from wechat', wechatMsg.MediaId);
+          return;
+        }
+        voiceMessageParser(data, function(text) {
+          console.log('recognized: ' + text);
+        });
+      });
     }
 
     private sendWechatMessage(openId: string, message: string): void {

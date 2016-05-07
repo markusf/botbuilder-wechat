@@ -58,10 +58,16 @@ var WechatBot = (function (_super) {
     };
     WechatBot.prototype.handleWechatMessage = function (req, res, next) {
         var wechatMsg = req.weixin;
-        if (wechatMsg.MsgType !== 'text') {
-            res.status(200).end();
-            return;
+        var msgType = wechatMsg.MsgType;
+        if (msgType === 'text') {
+            this.handleTextMessage(wechatMsg);
         }
+        else if (msgType === 'voice') {
+            this.handleVoiceMessage(wechatMsg);
+        }
+        res.status(200).end();
+    };
+    WechatBot.prototype.handleTextMessage = function (wechatMsg) {
         var msg = {
             id: wechatMsg.MsgId,
             from: {
@@ -71,7 +77,24 @@ var WechatBot = (function (_super) {
             text: wechatMsg.Content
         };
         this.dispatchMessage(wechatMsg.FromUserName, msg, null, this.options.defaultDialogId, this.options.defaultDialogArgs);
-        res.status(200).end();
+    };
+    WechatBot.prototype.handleVoiceMessage = function (wechatMsg) {
+        console.log('handle voice message');
+        console.log(wechatMsg);
+        var voiceMessageParser = this.options.voiceMessageParser;
+        if (!voiceMessageParser) {
+            console.log('no parser found');
+            return;
+        }
+        this.wechatApi.getMedia(wechatMsg.MediaId, function (err, data) {
+            if (err) {
+                console.log('error fetching media from wechat', wechatMsg.MediaId);
+                return;
+            }
+            voiceMessageParser(data, function (text) {
+                console.log('recognized: ' + text);
+            });
+        });
     };
     WechatBot.prototype.sendWechatMessage = function (openId, message) {
         this.wechatApi.sendText(openId, message, function (err) {

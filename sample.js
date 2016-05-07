@@ -7,7 +7,10 @@ var http = require('http').Server(app);
 var bot = new wechatBotBuilder.WechatBot({
   wechatAppId: process.env.wechatAppId,
   wechatSecret: process.env.wechatSecret,
-  wechatToken: process.env.wechatToken
+  wechatToken: process.env.wechatToken,
+  voiceMessageParser: function(msg, done) {
+    console.log(msg);
+  }
 });
 
 bot.add('/', [
@@ -30,7 +33,7 @@ bot.add('/', [
   }
 ]);
 
-app.use('/wc', bot.getWechatCallbackHandler());
+app.use('/bot/wc', bot.getWechatCallbackHandler());
 
 app.get('*', function(req, res) {
   res.status(404).end();
