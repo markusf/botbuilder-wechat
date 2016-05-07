@@ -101,14 +101,7 @@ export class WechatBot extends botframework.DialogCollection {
         Content: 't3sz',
         MsgId: '6232853194577323038' }
       */
-      var msg = {
-        id: wechatMsg.MsgId,
-        from: {
-          channelId: 'wechat',
-          address: wechatMsg.FromUserName
-        },
-        text: wechatMsg.Content
-      };
+      var msg = this.buildMessage(wechatMsg);
 
       this.dispatchMessage(wechatMsg.FromUserName,
         msg, null, this.options.defaultDialogId,
@@ -126,26 +119,41 @@ export class WechatBot extends botframework.DialogCollection {
         MsgId: '6281790477156573800',
         Recognition: '' }
       */
-      console.log('handle voice message');
-      console.log(wechatMsg);
       var voiceMessageParser = this.options.voiceMessageParser;
 
       if (!voiceMessageParser) {
-        console.log('no parser found');
         return;
       }
 
-      // fetch audio (amr) from wechat
-      // pass to handler
+      var parserCallback = function(text) {
+        var msg = this.buildMessage(wechatMsg, text);
+        this.dispatchMessage(wechatMsg.FromUserName,
+          msg, null, this.options.defaultDialogId,
+          this.options.defaultDialogArgs);
+      };
+
+      parserCallback = parserCallback.bind(this);
+
       this.wechatApi.getMedia(wechatMsg.MediaId, function(err, data) {
         if (err) {
-          console.log('error fetching media from wechat', wechatMsg.MediaId);
+          console.log('error fetching media');
           return;
         }
-        voiceMessageParser(data, function(text) {
-          console.log('recognized: ' + text);
-        });
+        voiceMessageParser(data, parserCallback);
       });
+    }
+
+    private buildMessage(wechatMsg, content?:string):any {
+      var msg = {
+        id: wechatMsg.MsgId,
+        from: {
+          channelId: 'wechat',
+          address: wechatMsg.FromUserName
+        },
+        text: content || wechatMsg.Content
+      };
+
+      return msg;
     }
 
     private sendWechatMessage(openId: string, message: string): void {

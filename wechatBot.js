@@ -68,33 +68,37 @@ var WechatBot = (function (_super) {
         res.status(200).end();
     };
     WechatBot.prototype.handleTextMessage = function (wechatMsg) {
+        var msg = this.buildMessage(wechatMsg);
+        this.dispatchMessage(wechatMsg.FromUserName, msg, null, this.options.defaultDialogId, this.options.defaultDialogArgs);
+    };
+    WechatBot.prototype.handleVoiceMessage = function (wechatMsg) {
+        var voiceMessageParser = this.options.voiceMessageParser;
+        if (!voiceMessageParser) {
+            return;
+        }
+        var parserCallback = function (text) {
+            var msg = this.buildMessage(wechatMsg, text);
+            this.dispatchMessage(wechatMsg.FromUserName, msg, null, this.options.defaultDialogId, this.options.defaultDialogArgs);
+        };
+        parserCallback = parserCallback.bind(this);
+        this.wechatApi.getMedia(wechatMsg.MediaId, function (err, data) {
+            if (err) {
+                console.log('error fetching media');
+                return;
+            }
+            voiceMessageParser(data, parserCallback);
+        });
+    };
+    WechatBot.prototype.buildMessage = function (wechatMsg, content) {
         var msg = {
             id: wechatMsg.MsgId,
             from: {
                 channelId: 'wechat',
                 address: wechatMsg.FromUserName
             },
-            text: wechatMsg.Content
+            text: content || wechatMsg.Content
         };
-        this.dispatchMessage(wechatMsg.FromUserName, msg, null, this.options.defaultDialogId, this.options.defaultDialogArgs);
-    };
-    WechatBot.prototype.handleVoiceMessage = function (wechatMsg) {
-        console.log('handle voice message');
-        console.log(wechatMsg);
-        var voiceMessageParser = this.options.voiceMessageParser;
-        if (!voiceMessageParser) {
-            console.log('no parser found');
-            return;
-        }
-        this.wechatApi.getMedia(wechatMsg.MediaId, function (err, data) {
-            if (err) {
-                console.log('error fetching media from wechat', wechatMsg.MediaId);
-                return;
-            }
-            voiceMessageParser(data, function (text) {
-                console.log('recognized: ' + text);
-            });
-        });
+        return msg;
     };
     WechatBot.prototype.sendWechatMessage = function (openId, message) {
         this.wechatApi.sendText(openId, message, function (err) {

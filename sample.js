@@ -3,13 +3,17 @@ var wechatBotBuilder = require('./wechatBot');
 var express = require('express');
 var app = express();
 var http = require('http').Server(app);
+var fs = require('fs');
 
 var bot = new wechatBotBuilder.WechatBot({
   wechatAppId: process.env.wechatAppId,
   wechatSecret: process.env.wechatSecret,
   wechatToken: process.env.wechatToken,
-  voiceMessageParser: function(msg, done) {
-    console.log(msg);
+  voiceMessageParser: function(payload, done) {
+    // paylod is a buffer containing an AMR Audio File
+    // parsing logic goes in here
+    // call service like ibm watson or microsoft speech
+    done('Hello!');
   }
 });
 
