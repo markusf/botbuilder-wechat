@@ -1,3 +1,7 @@
+**For a more up to date version, which works with Version 3 of the botframework, please have a look at this project:**
+
+**https://github.com/jyfcrw/botbuilder-wechat-connector**
+
 # Microsoft Bot Builder Wechat Integration
 
 Connect your Bot to your Wechat Account!
